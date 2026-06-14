@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1280" viewBox="0 0 1440 1280" fill="none">
+  <defs>
+    <filter id="card" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#000000" flood-opacity="0.05"/>
+    </filter>
+    <filter id="ringShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#A87611" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <rect width="1440" height="1280" fill="#F8FBF8"/>
+  <rect x="208" width="1232" height="1280" fill="#FEFFFE"/>
+
+  <!-- Sidebar -->
+  <rect x="0" y="0" width="208" height="1280" fill="#FBFCFB" stroke="#EDF3F0" stroke-width="1"/>
+  <circle cx="42" cy="46" r="18" fill="#00BCA0"/>
+  <text x="42" y="52" fill="#FFFFFF" font-size="16" font-weight="700" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">M</text>
+  <text x="72" y="42" fill="#173B37" font-size="16" font-weight="700" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">MedGuide AI</text>
+  <text x="72" y="62" fill="#7A7A7A" font-size="12" font-weight="400" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">面向医生的循证决策 Agent</text>
+  <rect x="8" y="100" width="192" height="44" rx="12" fill="#F3F8F6" stroke="#E7EFEB"/>
+  <rect x="8" y="109" width="3" height="26" rx="2" fill="#00BCA0"/>
+  <text x="56" y="128" fill="#242424" font-size="14" font-weight="600" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">Agent 问答</text>
+  <text x="186" y="128" fill="#0E8E7D" font-size="13" font-weight="600" text-anchor="end" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">生成中</text>
+  <line x1="18" y1="1236" x2="190" y2="1236" stroke="#EDF3F0" stroke-width="1"/>
+  <circle cx="30" cy="1260" r="12" fill="#00BCA0"/>
+  <text x="30" y="1266" fill="#FFFFFF" font-size="12" font-weight="700" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">J</text>
+  <text x="48" y="1266" fill="#5A5A5A" font-size="12" font-weight="400" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">0280ly@gmail.com</text>
+
+  <!-- Header -->
+  <text x="254" y="44" fill="#242424" font-size="22" font-weight="700" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">Agent 问答</text>
+  <text x="254" y="68" fill="#7A7A7A" font-size="13" font-weight="400" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">每次回答固定展开为 6 个结构模块，方便医生快速核对与 MDT 讨论</text>
+  <rect x="1280" y="26" width="106" height="36" rx="18" fill="#FFFFFF" stroke="#00BCA0"/>
+  <text x="1333" y="49" fill="#0E8E7D" font-size="13" font-weight="600" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">新建问答</text>
+  <line x1="254" y1="88" x2="1386" y2="88" stroke="#EDF3F0" stroke-width="1"/>
+
+  <!-- COMPACT INPUT ROW (showing submitted question) -->
+  <rect x="254" y="106" width="1132" height="80" rx="16" fill="#FFFFFF" stroke="#E7EFEB" filter="url(#card)"/>
+  <rect x="274" y="124" width="64" height="22" rx="11" fill="#EAFBF8" stroke="#CDECE1"/>
+  <text x="306" y="140" fill="#0E8E7D" font-size="11" font-weight="600" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">已提交</text>
+  <text x="350" y="140" fill="#7A7A7A" font-size="11" font-weight="500" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">2026-06-14 10:24 · 来源：指南 + 文献 + 病例</text>
+  <text x="274" y="170" fill="#242424" font-size="14" font-weight="500" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">HER2-low 晚期乳腺癌在内分泌经治后，何时优先选择 ADC？</text>
+  <rect x="1196" y="128" width="80" height="36" rx="18" fill="#FFFFFF" stroke="#E7EFEB"/>
+  <text x="1236" y="151" fill="#5A5A5A" font-size="12" font-weight="600" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">修改问题</text>
+  <rect x="1286" y="128" width="84" height="36" rx="18" fill="#FFFFFF" stroke="#F2D0D0"/>
+  <text x="1328" y="151" fill="#C04C4C" font-size="12" font-weight="600" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">取消生成</text>
+
+  <!-- ============ PROGRESS TIMELINE ============ -->
+  <rect x="254" y="204" width="1132" height="72" rx="16" fill="#F9FCFB" stroke="#E7EFEB"/>
+  <!-- progress label -->
+  <text x="274" y="226" fill="#7A7A7A" font-size="11" font-weight="500" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">回答进度</text>
+  <text x="320" y="226" fill="#242424" font-size="11" font-weight="700" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">1 / 6 已完成 · 等待您确认 ①</text>
+  <text x="1366" y="226" fill="#A87611" font-size="11" font-weight="600" text-anchor="end" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">剩余 22 秒</text>
+
+  <!-- timeline dots: x=304,514,724,934,1144,1336 spacing ~210 -->
+  <!-- connecting lines -->
+  <line x1="324" y1="252" x2="494" y2="252" stroke="#0E8E7D" stroke-width="2"/>
+  <line x1="534" y1="252" x2="704" y2="252" stroke="#F3D9A7" stroke-width="2" stroke-dasharray="3 3"/>
+  <line x1="744" y1="252" x2="914" y2="252" stroke="#E0EDE8" stroke-width="2" stroke-dasharray="3 3"/>
+  <line x1="954" y1="252" x2="1124" y2="252" stroke="#E0EDE8" stroke-width="2" stroke-dasharray="3 3"/>
+  <line x1="1164" y1="252" x2="1316" y2="252" stroke="#E0EDE8" stroke-width="2" stroke-dasharray="3 3"/>
+
+  <!-- ① completed -->
+  <circle cx="304" cy="252" r="14" fill="#0E8E7D"/>
+  <path d="M298 252 l4 4 l8 -8" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="304" y="280" fill="#0E8E7D" font-size="11" font-weight="700" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">① 问题重述</text>
+
+  <!-- ② awaiting (countdown next-up) -->
+  <circle cx="514" cy="252" r="14" fill="#FFFBF0" stroke="#A87611" stroke-width="1.5"/>
+  <circle cx="514" cy="252" r="3" fill="#A87611"/>
+  <text x="514" y="280" fill="#A87611" font-size="11" font-weight="700" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">② 路径对照</text>
+
+  <!-- ③ queued -->
+  <circle cx="724" cy="252" r="14" fill="#FFFFFF" stroke="#D8E4DF" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text x="724" y="256" fill="#9AA4A0" font-size="11" font-weight="700" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">3</text>
+  <text x="724" y="280" fill="#9AA4A0" font-size="11" font-weight="500" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">③ 证据归纳</text>
+
+  <!-- ④ queued -->
+  <circle cx="934" cy="252" r="14" fill="#FFFFFF" stroke="#D8E4DF" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text x="934" y="256" fill="#9AA4A0" font-size="11" font-weight="700" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">4</text>
+  <text x="934" y="280" fill="#9AA4A0" font-size="11" font-weight="500" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">④ 执行要点</text>
+
+  <!-- ⑤ queued -->
+  <circle cx="1144" cy="252" r="14" fill="#FFFFFF" stroke="#D8E4DF" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text x="1144" y="256" fill="#9AA4A0" font-size="11" font-weight="700" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">5</text>
+  <text x="1144" y="280" fill="#9AA4A0" font-size="11" font-weight="500" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">⑤ 待决策</text>
+
+  <!-- ⑥ queued -->
+  <circle cx="1336" cy="252" r="14" fill="#FFFFFF" stroke="#D8E4DF" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text x="1336" y="256" fill="#9AA4A0" font-size="11" font-weight="700" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">6</text>
+  <text x="1336" y="280" fill="#9AA4A0" font-size="11" font-weight="500" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">⑥ MDT 草案</text>
+
+  <!-- ============ STATE LEGEND ============ -->
+  <text x="254" y="312" fill="#7A7A7A" font-size="11" font-weight="600" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">阶段状态说明</text>
+
+  <!-- chip: 排队中 -->
+  <rect x="328" y="298" width="92" height="22" rx="11" fill="#FFFFFF" stroke="#D8E4DF"/>
+  <circle cx="342" cy="309" r="4" fill="none" stroke="#9AA4A0" stroke-width="1.5"/>
+  <text x="356" y="313" fill="#5A5A5A" font-size="11" font-weight="500" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">排队中</text>
+
+  <!-- chip: 检索中 -->
+  <rect x="428" y="298" width="92" height="22" rx="11" fill="#EEF6FF" stroke="#D4E6FF"/>
+  <circle cx="442" cy="309" r="3" fill="#2D6FD2"/>
+  <circle cx="448" cy="309" r="3" fill="#2D6FD2" opacity="0.6"/>
+  <circle cx="454" cy="309" r="3" fill="#2D6FD2" opacity="0.3"/>
+  <text x="465" y="313" fill="#2D6FD2" font-size="11" font-weight="600" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">检索中</text>
+
+  <!-- chip: 生成中 -->
+  <rect x="528" y="298" width="92" height="22" rx="11" fill="#EAFBF8" stroke="#CDECE1"/>
+  <circle cx="542" cy="309" r="4" fill="#0E8E7D"/>
+  <text x="556" y="313" fill="#0E8E7D" font-size="11" font-weight="600" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">生成中</text>
+
+  <!-- chip: 已完成 -->
+  <rect x="628" y="298" width="92" height="22" rx="11" fill="#0E8E7D"/>
+  <path d="M640 309 l4 4 l8 -8" stroke="#FFFFFF" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="658" y="313" fill="#FFFFFF" font-size="11" font-weight="600" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">已完成</text>
+
+  <!-- chip: 失败 -->
+  <rect x="728" y="298" width="92" height="22" rx="11" fill="#FFF0F0" stroke="#F2D0D0"/>
+  <path d="M740 305 l8 8 m0 -8 l-8 8" stroke="#C04C4C" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <text x="756" y="313" fill="#C04C4C" font-size="11" font-weight="600" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">失败 · 可重试</text>
+
+  <text x="848" y="313" fill="#AAAAAA" font-size="11" font-weight="400" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">每个模块均可单独重试，且会显示来源徽章与用时</text>
+
+  <!-- ============ ① 临床问题重述 — 已完成 ============ -->
+  <rect x="254" y="336" width="1132" height="124" rx="14" fill="#FFFFFF" stroke="#CDECE1" stroke-width="1.5" filter="url(#card)"/>
+  <rect x="254" y="336" width="4" height="124" rx="2" fill="#0E8E7D"/>
+  <rect x="272" y="354" width="20" height="20" rx="10" fill="#0E8E7D"/>
+  <text x="282" y="369" fill="#FFFFFF" font-size="11" font-weight="700" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">1</text>
+  <rect x="302" y="354" width="76" height="20" rx="10" fill="#0E8E7D"/>
+  <path d="M314 364 l4 4 l8 -8" stroke="#FFFFFF" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="356" y="368" fill="#FFFFFF" font-size="11" font-weight="600" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">已完成</text>
+  <text x="390" y="368" fill="#AAAAAA" font-size="11" font-weight="500" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">用时 2.3 秒 · 来源 3 篇</text>
+  <text x="272" y="396" fill="#173B37" font-size="15" font-weight="700" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">临床问题重述</text>
+  <text x="272" y="418" fill="#242424" font-size="13" font-weight="400" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">浸润性乳腺癌 · 晚期 · HR+ / HER2-low 全身治疗：内分泌经治进展后，何时优先选择 ADC？</text>
+  <text x="272" y="440" fill="#7A7A7A" font-size="12" font-weight="400" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">若问题理解不准确，请在下方倒计时结束前修改或重新生成</text>
+
+  <rect x="1192" y="384" width="84" height="32" rx="16" fill="#FFFFFF" stroke="#CDECE1"/>
+  <text x="1234" y="404" fill="#0E8E7D" font-size="12" font-weight="600" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">修改问题</text>
+  <rect x="1284" y="384" width="84" height="32" rx="16" fill="#FFFFFF" stroke="#CDECE1"/>
+  <text x="1326" y="404" fill="#0E8E7D" font-size="12" font-weight="600" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">重新生成</text>
+
+  <!-- ============ COUNTDOWN CARD ============ -->
+  <rect x="254" y="478" width="1132" height="108" rx="16" fill="#FFFBF0" stroke="#F3D9A7" stroke-width="1.5" filter="url(#card)"/>
+
+  <!-- timer ring -->
+  <g filter="url(#ringShadow)">
+    <circle cx="324" cy="532" r="32" fill="#FFFFFF"/>
+  </g>
+  <circle cx="324" cy="532" r="28" fill="none" stroke="#F3D9A7" stroke-width="4"/>
+  <!-- progress arc: 22/30 left = 73%, ~263° remaining, start at top -->
+  <path d="M 324 504 A 28 28 0 1 1 296.5 547.6" fill="none" stroke="#A87611" stroke-width="4" stroke-linecap="round"/>
+  <text x="324" y="528" fill="#A87611" font-size="20" font-weight="700" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">22</text>
+  <text x="324" y="546" fill="#A87611" font-size="10" font-weight="600" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">秒</text>
+
+  <text x="382" y="510" fill="#7A4F00" font-size="11" font-weight="600" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">等待确认 · 自动续推</text>
+  <text x="382" y="534" fill="#173B37" font-size="15" font-weight="700" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">30 秒后将自动开始生成剩余 5 个模块</text>
+  <text x="382" y="556" fill="#7A7A7A" font-size="12" font-weight="400" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">如需修改临床问题理解，可在此前调整，避免后续 5 个模块在错误前提下展开</text>
+
+  <rect x="1180" y="514" width="96" height="36" rx="18" fill="#FFFFFF" stroke="#A87611"/>
+  <text x="1228" y="537" fill="#A87611" font-size="12" font-weight="600" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">修改问题</text>
+  <rect x="1284" y="514" width="84" height="36" rx="18" fill="#0E8E7D"/>
+  <text x="1326" y="537" fill="#FFFFFF" font-size="12" font-weight="600" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">立即继续 →</text>
+
+  <!-- ============ ② 候选路径对照 — 排队中 · 即将开始 ============ -->
+  <rect x="254" y="604" width="1132" height="86" rx="14" fill="#FFFBF0" stroke="#F3D9A7" stroke-dasharray="6 4"/>
+  <rect x="272" y="622" width="20" height="20" rx="10" fill="#FFFBF0" stroke="#A87611" stroke-width="1.5"/>
+  <text x="282" y="637" fill="#A87611" font-size="11" font-weight="700" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">2</text>
+  <rect x="302" y="622" width="98" height="20" rx="10" fill="#FFF7EA" stroke="#F3D9A7"/>
+  <text x="351" y="636" fill="#A87611" font-size="11" font-weight="600" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">即将开始 · 第 1 位</text>
+  <text x="272" y="664" fill="#173B37" font-size="15" font-weight="700" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">候选路径对照</text>
+  <text x="272" y="682" fill="#9AA4A0" font-size="12" font-weight="400" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">主路径 + 备选路径 + 切换条件，将在倒计时结束后立即开始</text>
+
+  <rect x="1284" y="638" width="84" height="32" rx="16" fill="#FFFFFF" stroke="#E7EFEB"/>
+  <text x="1326" y="658" fill="#5A5A5A" font-size="12" font-weight="500" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">跳过本模块</text>
+
+  <!-- ============ ③ 证据归纳 — 排队中 ============ -->
+  <rect x="254" y="708" width="1132" height="86" rx="14" fill="#FAFCFB" stroke="#D8E4DF" stroke-dasharray="6 4"/>
+  <rect x="272" y="726" width="20" height="20" rx="10" fill="#FFFFFF" stroke="#D8E4DF" stroke-width="1.5"/>
+  <text x="282" y="741" fill="#9AA4A0" font-size="11" font-weight="700" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">3</text>
+  <rect x="302" y="726" width="92" height="20" rx="10" fill="#FFFFFF" stroke="#D8E4DF"/>
+  <circle cx="316" cy="736" r="3" fill="none" stroke="#9AA4A0" stroke-width="1.4"/>
+  <text x="354" y="740" fill="#9AA4A0" font-size="11" font-weight="600" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">排队中 · 第 2 位</text>
+  <text x="272" y="768" fill="#173B37" font-size="15" font-weight="700" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">证据归纳</text>
+  <text x="272" y="786" fill="#9AA4A0" font-size="12" font-weight="400" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">固定 3 层：核心证据 · 限制条件 · 不可外推边界</text>
+
+  <!-- ============ ④ 院内执行要点 — 排队中 ============ -->
+  <rect x="254" y="812" width="1132" height="86" rx="14" fill="#FAFCFB" stroke="#D8E4DF" stroke-dasharray="6 4"/>
+  <rect x="272" y="830" width="20" height="20" rx="10" fill="#FFFFFF" stroke="#D8E4DF" stroke-width="1.5"/>
+  <text x="282" y="845" fill="#9AA4A0" font-size="11" font-weight="700" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">4</text>
+  <rect x="302" y="830" width="92" height="20" rx="10" fill="#FFFFFF" stroke="#D8E4DF"/>
+  <circle cx="316" cy="840" r="3" fill="none" stroke="#9AA4A0" stroke-width="1.4"/>
+  <text x="354" y="844" fill="#9AA4A0" font-size="11" font-weight="600" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">排队中 · 第 3 位</text>
+  <text x="272" y="872" fill="#173B37" font-size="15" font-weight="700" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">院内执行要点</text>
+  <text x="272" y="890" fill="#9AA4A0" font-size="12" font-weight="400" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">治疗前 → 治疗中 → 治疗后，固定时间序执行卡</text>
+
+  <!-- ============ ⑤ 待决策问题 — 排队中 ============ -->
+  <rect x="254" y="916" width="1132" height="86" rx="14" fill="#FAFCFB" stroke="#D8E4DF" stroke-dasharray="6 4"/>
+  <rect x="272" y="934" width="20" height="20" rx="10" fill="#FFFFFF" stroke="#D8E4DF" stroke-width="1.5"/>
+  <text x="282" y="949" fill="#9AA4A0" font-size="11" font-weight="700" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">5</text>
+  <rect x="302" y="934" width="92" height="20" rx="10" fill="#FFFFFF" stroke="#D8E4DF"/>
+  <circle cx="316" cy="944" r="3" fill="none" stroke="#9AA4A0" stroke-width="1.4"/>
+  <text x="354" y="948" fill="#9AA4A0" font-size="11" font-weight="600" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">排队中 · 第 4 位</text>
+  <text x="272" y="976" fill="#173B37" font-size="15" font-weight="700" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">待决策问题</text>
+  <text x="272" y="994" fill="#9AA4A0" font-size="12" font-weight="400" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">Agent 无法自动决定、需在 MDT 上明确表决的 2–3 项关键议题</text>
+
+  <!-- ============ ⑥ MDT 草案 — 排队中 ============ -->
+  <rect x="254" y="1020" width="1132" height="86" rx="14" fill="#FAFCFB" stroke="#D8E4DF" stroke-dasharray="6 4"/>
+  <rect x="272" y="1038" width="20" height="20" rx="10" fill="#FFFFFF" stroke="#D8E4DF" stroke-width="1.5"/>
+  <text x="282" y="1053" fill="#9AA4A0" font-size="11" font-weight="700" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">6</text>
+  <rect x="302" y="1038" width="92" height="20" rx="10" fill="#FFFFFF" stroke="#D8E4DF"/>
+  <circle cx="316" cy="1048" r="3" fill="none" stroke="#9AA4A0" stroke-width="1.4"/>
+  <text x="354" y="1052" fill="#9AA4A0" font-size="11" font-weight="600" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">排队中 · 第 5 位</text>
+  <text x="272" y="1080" fill="#173B37" font-size="15" font-weight="700" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">MDT 讨论结论草案</text>
+  <text x="272" y="1098" fill="#9AA4A0" font-size="12" font-weight="400" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">本次会议结论草案，可一键导出为 MDT 纪要</text>
+
+  <!-- ============ Bottom hint ============ -->
+  <text x="254" y="1148" fill="#7A7A7A" font-size="12" font-weight="600" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">流程说明</text>
+  <text x="254" y="1170" fill="#9AA4A0" font-size="12" font-weight="400" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">① 问题重述完成后，进入 30 秒确认窗口 → 用户可【修改问题】回到①重跑，或【立即继续】跳过倒计时</text>
+  <text x="254" y="1190" fill="#9AA4A0" font-size="12" font-weight="400" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">倒计时结束 / 用户确认后，②③④⑤⑥ 按顺序流式生成；每个模块的状态独立切换：排队中 → 检索中 → 生成中 → 已完成</text>
+  <text x="254" y="1210" fill="#9AA4A0" font-size="12" font-weight="400" text-anchor="start" font-family="'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif">任一模块失败可单独重试；用户改动 ① 后，下游已完成模块会被标记「已过时」，提示一键刷新</text>
+</svg>

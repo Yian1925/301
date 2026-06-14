@@ -27,8 +27,7 @@
 /* —— Header —— */
 .syn-bp-header {
   flex-shrink: 0;
-  padding: 8px 0 20px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 4px 0 8px;
   margin-bottom: 0;
 }
 
@@ -53,17 +52,27 @@
 .syn-bp-toolbar {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px 20px;
-  margin-bottom: 14px;
+  margin-bottom: 0;
 }
 
 .syn-bp-toolbar-primary {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 14px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.syn-bp-toolbar-primary .syn-bp-dek {
+  margin: 0;
+}
+
+.syn-bp-toolbar-primary .syn-bp-pathway-line {
+  margin: 0;
 }
 
 .syn-bp-disease-label {
@@ -73,27 +82,18 @@
   white-space: nowrap;
 }
 
-.syn-bp-disease-select {
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  color: #0f172a;
-  min-width: 200px;
-  max-width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  background: #fff;
-  cursor: pointer;
+.syn-bp-disease-dropdown {
+  min-width: 420px;
 }
-
-.syn-bp-disease-select:hover {
-  border-color: #94a3b8;
+.syn-bp-disease-dropdown .gl-search-select-trigger {
+  position: relative;
 }
-
-.syn-bp-disease-select:focus {
-  outline: 2px solid #0f766e;
-  outline-offset: 1px;
+.syn-bp-disease-dropdown .gl-search-select-pop {
+  left: 0;
+  right: 0;
+}
+.syn-bp-disease-dropdown .syn-bp-disease-option {
+  margin: 0 6px;
 }
 
 .syn-bp-updated--inline {
@@ -193,14 +193,19 @@
 .syn-bp-btn--agent-block {
   width: 100%;
   margin-top: 14px;
-  background: #1e293b;
-  color: #fff;
-  font-size: 12px;
-  padding: 10px 12px;
+  background: #E3F6F2;
+  color: #111;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  padding: 12px 16px;
+  border-radius: 10px;
+  box-shadow: none;
 }
 
 .syn-bp-btn--agent-block:hover {
-  background: #334155;
+  background: #d2efe9;
+  box-shadow: none;
 }
 
 .syn-bp-disease-tabs {
@@ -248,16 +253,23 @@
   color: #94a3b8;
 }
 
+.syn-bp-pathway-sep {
+  margin: 0 8px;
+  color: #cbd5e1;
+}
+
 /* —— Body: stage nav + main —— */
 .syn-bp-body {
+  flex: 1;
   display: flex;
   gap: 0;
   align-items: stretch;
-  min-height: 420px;
+  min-height: 0;
   background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  margin-top: 16px;
+  margin-top: 8px;
+  margin-bottom: 8px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   overflow: hidden;
 }
@@ -270,7 +282,7 @@
 
 .syn-bp-stage-nav {
   flex: 0 0 240px;
-  background: #f8fafc;
+  background: #fff;
   border-right: 1px solid #e5e7eb;
   padding: 16px 12px 20px;
 }
@@ -284,11 +296,10 @@
 }
 
 .syn-bp-stage-nav-title {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: #111;
   padding: 0 8px 10px;
 }
 
@@ -301,7 +312,7 @@
 .syn-bp-stage-item {
   width: 100%;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
   text-align: left;
   border: none;
@@ -314,23 +325,24 @@
   transition: background 0.12s;
 }
 
-.syn-bp-stage-item:hover {
-  background: #e2e8f0;
+.syn-bp-stage-item:hover:not(.syn-bp-stage-item--active) {
+  background: #f3f4f6;
 }
 
-.syn-bp-stage-item--active {
+.syn-bp-stage-item--active,
+.syn-bp-stage-item--active:hover {
   background: #fff;
-  box-shadow: 0 0 0 1px #0f766e, 0 1px 4px rgba(15, 118, 110, 0.12);
+  box-shadow: 0 0 0 1px #00bca0, 0 1px 4px rgba(0, 188, 160, 0.18);
 }
 
 .syn-bp-stage-num {
   flex-shrink: 0;
-  width: 22px;
-  height: 22px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: #e2e8f0;
-  color: #475569;
-  font-size: 11px;
+  background: #f1f5f9;
+  color: #94a3b8;
+  font-size: 9px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -338,19 +350,20 @@
 }
 
 .syn-bp-stage-item--active .syn-bp-stage-num {
-  background: #0f766e;
+  background: #00bca0;
   color: #fff;
 }
 
 .syn-bp-stage-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #334155;
+  font-size: 14px;
+  font-weight: 400;
+  color: #111;
   line-height: 1.35;
 }
 
 .syn-bp-stage-item--active .syn-bp-stage-label {
-  color: #0f172a;
+  color: #111;
+  font-weight: 400;
 }
 
 .syn-bp-main {

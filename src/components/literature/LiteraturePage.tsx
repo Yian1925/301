@@ -148,21 +148,66 @@ export default function LiteraturePage() {
     setLiteratureFocusEvidenceId,
   ]);
 
-  const filtered = useMemo(() => {
-    const pool =
+  const pool = useMemo(
+    () =>
       synthesisRestrictIds != null && synthesisRestrictIds.length > 0
         ? LITERATURE_EVIDENCE.filter((e) => synthesisRestrictIds.includes(e.id))
-        : LITERATURE_EVIDENCE;
+        : LITERATURE_EVIDENCE,
+    [synthesisRestrictIds]
+  );
+
+  const matchesQuery = (ev: LiteratureEvidenceItem, qq: string) => {
+    if (!qq) return true;
+    const blob = `${ev.title} ${ev.thesis} ${ev.keywords.join(' ')} ${ev.citation}`.toLowerCase();
+    return blob.includes(qq);
+  };
+
+  const filtered = useMemo(() => {
     const qq = q.trim().toLowerCase();
     return pool.filter((ev) => {
       if (cat && ev.category !== cat) return false;
       if (gradeFilter && ev.evidenceGrade !== gradeFilter) return false;
       if (designFilter && ev.studyDesign !== designFilter) return false;
-      if (!qq) return true;
-      const blob = `${ev.title} ${ev.thesis} ${ev.keywords.join(' ')} ${ev.citation}`.toLowerCase();
-      return blob.includes(qq);
+      return matchesQuery(ev, qq);
     });
-  }, [q, cat, gradeFilter, designFilter, synthesisRestrictIds]);
+  }, [q, cat, gradeFilter, designFilter, pool]);
+
+  const countFor = useMemo(() => {
+    const qq = q.trim().toLowerCase();
+    return {
+      category: (val: LiteratureEvidenceCategory) =>
+        pool.filter(
+          (ev) =>
+            ev.category === val &&
+            (!gradeFilter || ev.evidenceGrade === gradeFilter) &&
+            (!designFilter || ev.studyDesign === designFilter) &&
+            matchesQuery(ev, qq)
+        ).length,
+      grade: (val: EvidenceGradeCode) =>
+        pool.filter(
+          (ev) =>
+            ev.evidenceGrade === val &&
+            (!cat || ev.category === cat) &&
+            (!designFilter || ev.studyDesign === designFilter) &&
+            matchesQuery(ev, qq)
+        ).length,
+      design: (val: StudyDesignCode) =>
+        pool.filter(
+          (ev) =>
+            ev.studyDesign === val &&
+            (!cat || ev.category === cat) &&
+            (!gradeFilter || ev.evidenceGrade === gradeFilter) &&
+            matchesQuery(ev, qq)
+        ).length,
+    };
+  }, [pool, q, cat, gradeFilter, designFilter]);
+
+  const clearAllFilters = () => {
+    setCat('');
+    setGradeFilter('');
+    setDesignFilter('');
+  };
+  const hasAnyFilter = Boolean(cat || gradeFilter || designFilter);
 
   useEffect(() => {
     if (filtered.length === 0) {
@@ -177,11 +222,51 @@ export default function LiteraturePage() {
     [selectedId]
   );
 
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerWidth, setDrawerWidth] = useState(() =>
+    typeof window === 'undefined' ? 960 : Math.max(480, Math.floor(window.innerWidth / 2))
+  );
+  const drawerResizingRef = useRef(false);
+
+  const openDetail = (id: string) => {
+    setSelectedId(id);
+    setDrawerOpen(true);
+  };
+  const closeDrawer = () => setDrawerOpen(false);
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!drawerResizingRef.current) return;
+      const next = window.innerWidth - e.clientX;
+      const min = 360;
+      const max = Math.max(min, window.innerWidth - 200);
+      setDrawerWidth(Math.min(max, Math.max(min, next)));
+    };
+    const onUp = () => {
+      if (!drawerResizingRef.current) return;
+      drawerResizingRef.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+  }, []);
+
+  const startDrawerResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    drawerResizingRef.current = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
+
   return (
     <div className="lit-page">
       <header className="lit-page-head">
         <div className="lit-page-head-row">
-          <h2 className="lit-page-title">文献证据库</h2>
           {showBackToSynthesis ? (
             <button
               type="button"
@@ -207,50 +292,33 @@ export default function LiteraturePage() {
           ) : null}
         </div>
         <div className="lit-toolbar lit-toolbar--wrap">
-          <input
-            type="search"
-            className="lit-search"
-            placeholder="搜索标题、关键词、期刊…"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            aria-label="搜索文献证据"
-          />
-          <select
-            className="lit-select"
-            value={cat}
-            onChange={(e) => setCat(e.target.value as LiteratureEvidenceCategory | '')}
-            aria-label="归纳类型"
-          >
-            {CATEGORY_OPTIONS.map((o) => (
-              <option key={o.value || 'all'} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-          <select
-            className="lit-select"
-            value={gradeFilter}
-            onChange={(e) => setGradeFilter(e.target.value as EvidenceGradeCode | '')}
-            aria-label="证据等级"
-          >
-            {GRADE_OPTIONS.map((o) => (
-              <option key={o.value || 'all-g'} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-          <select
-            className="lit-select"
-            value={designFilter}
-            onChange={(e) => setDesignFilter(e.target.value as StudyDesignCode | '')}
-            aria-label="研究设计"
-          >
-            {DESIGN_OPTIONS.map((o) => (
-              <option key={o.value || 'all-d'} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+          <p className="lit-toolbar-hint">
+            按归纳类型、证据等级、研究设计多维筛选，快速定位相关证据
+          </p>
+          <div className="lit-search-group">
+            <div className="lit-search-trigger">
+              <input
+                type="search"
+                className="lit-search-input"
+                placeholder="搜索标题、关键词、期刊…"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                aria-label="搜索文献证据"
+              />
+            </div>
+            <button
+              type="button"
+              className="lit-search-btn"
+              aria-label="搜索"
+              onClick={() => setQ((s) => s.trim())}
+            >
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <circle cx="9" cy="9" r="6" />
+                <path d="M14 14l4 4" strokeLinecap="round" />
+              </svg>
+              <span>搜索</span>
+            </button>
+          </div>
         </div>
         {synthesisRestrictIds != null && synthesisRestrictIds.length > 0 ? (
           <div className="lit-synthesis-scope" role="status">
@@ -265,7 +333,134 @@ export default function LiteraturePage() {
       </header>
 
       <div className="lit-split">
-        <nav className="lit-list" aria-label="证据条目列表">
+        <aside className="lit-side-filters" aria-label="筛选条件">
+          <div className="lit-side-filter">
+            <div className="lit-side-filter-label">归纳类型</div>
+            <ul className="lit-check-list">
+              {CATEGORY_OPTIONS.filter((o) => o.value !== '').map((o) => {
+                const v = o.value as LiteratureEvidenceCategory;
+                const checked = cat === v;
+                const n = countFor.category(v);
+                return (
+                  <li key={v}>
+                    <button
+                      type="button"
+                      className={`lit-check-item ${checked ? 'lit-check-item--on' : ''}`}
+                      onClick={() => setCat(checked ? '' : v)}
+                      aria-pressed={checked}
+                    >
+                      <span className={`lit-check-box ${checked ? 'lit-check-box--on' : ''}`} aria-hidden>
+                        {checked ? (
+                          <svg viewBox="0 0 12 12" width="10" height="10">
+                            <path d="M2 6.5L5 9.5L10 3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        ) : null}
+                      </span>
+                      <span className="lit-check-label">{o.label}</span>
+                      <span className="lit-check-count">({n})</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <div className="lit-side-filter">
+            <div className="lit-side-filter-label">证据等级</div>
+            <ul className="lit-check-list">
+              {GRADE_OPTIONS.filter((o) => o.value !== '').map((o) => {
+                const v = o.value as EvidenceGradeCode;
+                const checked = gradeFilter === v;
+                const n = countFor.grade(v);
+                return (
+                  <li key={v}>
+                    <button
+                      type="button"
+                      className={`lit-check-item ${checked ? 'lit-check-item--on' : ''}`}
+                      onClick={() => setGradeFilter(checked ? '' : v)}
+                      aria-pressed={checked}
+                    >
+                      <span className={`lit-check-box ${checked ? 'lit-check-box--on' : ''}`} aria-hidden>
+                        {checked ? (
+                          <svg viewBox="0 0 12 12" width="10" height="10">
+                            <path d="M2 6.5L5 9.5L10 3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        ) : null}
+                      </span>
+                      <span className="lit-check-label">{o.label}</span>
+                      <span className="lit-check-count">({n})</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <div className="lit-side-filter">
+            <div className="lit-side-filter-label">研究设计</div>
+            <ul className="lit-check-list">
+              {DESIGN_OPTIONS.filter((o) => o.value !== '').map((o) => {
+                const v = o.value as StudyDesignCode;
+                const checked = designFilter === v;
+                const n = countFor.design(v);
+                return (
+                  <li key={v}>
+                    <button
+                      type="button"
+                      className={`lit-check-item ${checked ? 'lit-check-item--on' : ''}`}
+                      onClick={() => setDesignFilter(checked ? '' : v)}
+                      aria-pressed={checked}
+                    >
+                      <span className={`lit-check-box ${checked ? 'lit-check-box--on' : ''}`} aria-hidden>
+                        {checked ? (
+                          <svg viewBox="0 0 12 12" width="10" height="10">
+                            <path d="M2 6.5L5 9.5L10 3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        ) : null}
+                      </span>
+                      <span className="lit-check-label">{o.label}</span>
+                      <span className="lit-check-count">({n})</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </aside>
+
+        <div className="lit-list-col">
+          <div className="lit-chips-row" role="status">
+            <span className="lit-chips-label">已选筛选：</span>
+            <span className="lit-chips-list">
+              {cat ? (
+                <span className="lit-chip">
+                  {CATEGORY_OPTIONS.find((o) => o.value === cat)?.label}
+                  <button type="button" aria-label="移除" className="lit-chip-close" onClick={() => setCat('')}>×</button>
+                </span>
+              ) : null}
+              {gradeFilter ? (
+                <span className="lit-chip">
+                  {GRADE_OPTIONS.find((o) => o.value === gradeFilter)?.label}
+                  <button type="button" aria-label="移除" className="lit-chip-close" onClick={() => setGradeFilter('')}>×</button>
+                </span>
+              ) : null}
+              {designFilter ? (
+                <span className="lit-chip">
+                  {DESIGN_OPTIONS.find((o) => o.value === designFilter)?.label}
+                  <button type="button" aria-label="移除" className="lit-chip-close" onClick={() => setDesignFilter('')}>×</button>
+                </span>
+              ) : null}
+            </span>
+            <button
+              type="button"
+              className="lit-chips-clear"
+              onClick={clearAllFilters}
+              disabled={!hasAnyFilter}
+            >
+              清空全部
+            </button>
+            <span className="lit-chips-total">共 {filtered.length} 篇</span>
+          </div>
+
+        <nav className="lit-list lit-list--full" aria-label="证据条目列表">
           {filtered.length === 0 ? (
             <div className="lit-list-empty">无匹配条目，请调整筛选或关键词。</div>
           ) : (
@@ -274,12 +469,12 @@ export default function LiteraturePage() {
                 <li key={ev.id}>
                   <button
                     type="button"
-                    className={`lit-list-item ${selectedId === ev.id ? 'lit-list-item--active' : ''}`}
-                    onClick={() => setSelectedId(ev.id)}
-                    onKeyDown={(e) => roleButtonActivate(e, () => setSelectedId(ev.id))}
+                    className={`lit-list-item ${selectedId === ev.id && drawerOpen ? 'lit-list-item--active' : ''}`}
+                    onClick={() => openDetail(ev.id)}
+                    onKeyDown={(e) => roleButtonActivate(e, () => openDetail(ev.id))}
                   >
-                    <span className={categoryBadgeClass(ev.category)}>{categoryLabel(ev.category)}</span>
-                    <span className="lit-list-ebm">
+                    <span className="lit-list-tags">
+                      <span className={categoryBadgeClass(ev.category)}>{categoryLabel(ev.category)}</span>
                       <span className={`lit-grade lit-grade--${ev.evidenceGrade}`}>{EVIDENCE_GRADE_LABEL[ev.evidenceGrade]}</span>
                       <span className="lit-design">{STUDY_DESIGN_LABEL[ev.studyDesign]}</span>
                     </span>
@@ -291,12 +486,42 @@ export default function LiteraturePage() {
             </ul>
           )}
         </nav>
+        </div>
+      </div>
 
-        <section className="lit-detail" aria-live="polite">
-          {!selected ? (
-            <div className="lit-detail-empty">请选择左侧条目。</div>
-          ) : (
-            <>
+      {drawerOpen && selected ? (
+        <>
+          <div
+            className="lit-drawer-mask"
+            onClick={closeDrawer}
+            role="presentation"
+          />
+          <section
+            className="lit-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-label="文献详情"
+            style={{ width: drawerWidth }}
+          >
+            <div
+              className="lit-drawer-resizer"
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="拖拽调整抽屉宽度"
+              onMouseDown={startDrawerResize}
+            />
+            <header className="lit-drawer-head">
+              <span className="lit-drawer-title-text">文献详情</span>
+              <button
+                type="button"
+                className="lit-drawer-close"
+                onClick={closeDrawer}
+                aria-label="关闭"
+              >
+                ×
+              </button>
+            </header>
+            <div className="lit-drawer-body">
               <div className="lit-detail-header">
                 <div className="lit-detail-badges">
                   <span className={categoryBadgeClass(selected.category)}>{categoryLabel(selected.category)}</span>
@@ -370,10 +595,10 @@ export default function LiteraturePage() {
                   </dl>
                 </aside>
               ) : null}
-            </>
-          )}
-        </section>
-      </div>
+            </div>
+          </section>
+        </>
+      ) : null}
 
       <p className="lit-footnote">
         证据等级采用 GRADE 四档示意；正式环境应经系统评价流程降级/升级并记录依据。研究设计标签用于分层，不等同于证据确定性本身。

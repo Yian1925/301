@@ -62,6 +62,7 @@ const REF = {
 };
 const DEFAULT_REF_PANEL_HEIGHT = 200;
 const MIN_REF_PANEL_HEIGHT = 80;
+const MAX_REF_PANEL_HEIGHT = 640;
 const BASE_CANVAS_SCALE = 0.7; // Displayed 100% equals previous ~70% visual size
 
 // ── Column definitions ────────────────────────────────────────────────
@@ -617,7 +618,7 @@ function RefPanel({ refKey, onClose, refLookup = REF, fnLookup = FN }) {
   const onMouseMove = useCallback((e) => {
     if (!dragging.current) return;
     const delta = startY.current - e.clientY;
-    const newH = Math.max(MIN_REF_PANEL_HEIGHT, Math.min(DEFAULT_REF_PANEL_HEIGHT, startH.current + delta));
+    const newH = Math.max(MIN_REF_PANEL_HEIGHT, Math.min(MAX_REF_PANEL_HEIGHT, startH.current + delta));
     setHeight(newH);
   }, []);
 
@@ -643,43 +644,45 @@ function RefPanel({ refKey, onClose, refLookup = REF, fnLookup = FN }) {
   const text   = isBinv ? refLookup[refKey] : fnLookup[refKey];
   const isXref = isBinv && refLookup[refKey]?.startsWith("→");
 
+  const isCat = title.startsWith("Category");
+  const chipBg = isCat ? "#E8F5EC" : isXref ? "#E6F4EF" : "#E8F0FB";
+  const chipBorder = isCat ? "#8CCCAA" : isXref ? "#9CCEB4" : "#ACC6E8";
+  const chipColor = isCat ? "#0D5C3E" : isXref ? T.green : T.blue;
+
+  const bodyHasInlinePrefix = typeof text === "string" && text.startsWith(`${title}:`);
+  const bodyRest = bodyHasInlinePrefix ? text.slice(title.length + 1).trimStart() : text;
+
   return (
-    <>
-      <div onClick={onClose} style={{position:"absolute",inset:0,zIndex:1002}}/>
+    <div
+      onClick={e=>e.stopPropagation()}
+      style={{
+        position:"absolute",bottom:0,left:0,right:0,
+        zIndex:1003,height:height,
+        background:"#fff",
+        borderTop:"none",
+        borderRadius:0,
+        boxShadow:"none",
+        fontFamily:"'DM Sans','IBM Plex Sans',system-ui,sans-serif",
+        display:"flex",flexDirection:"column",
+        overflow:"hidden",
+      }}
+    >
       <div
-        onClick={e=>e.stopPropagation()}
-        style={{
-          position:"absolute",bottom:0,left:0,right:0,
-          zIndex:1003,height:height,
-          background:"#fff",
-          borderTop:"2px solid #C4D4EC",
-          borderRadius:"12px 12px 0 0",
-          boxShadow:"0 -8px 40px rgba(8,20,45,0.18)",
-          fontFamily:"'DM Sans','IBM Plex Sans',system-ui,sans-serif",
-          display:"flex",flexDirection:"column",
-          overflow:"hidden",
-        }}
+        onMouseDown={onMouseDown}
+        style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"4px 20px",flexShrink:0,background:"rgba(0, 188, 160, 0.12)",cursor:"ns-resize",userSelect:"none"}}
       >
-        <div
-          onMouseDown={onMouseDown}
-          style={{height:22,display:"flex",alignItems:"center",justifyContent:"center",cursor:"ns-resize",flexShrink:0,background:"#F8FAFD",borderBottom:"1px solid #EEF3FA",userSelect:"none"}}
-        >
-          <div style={{width:36,height:4,borderRadius:2,background:"#C4D4EC"}}/>
-        </div>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 20px 8px",borderBottom:"1px solid #EEF3FA",flexShrink:0}}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <span style={{fontSize:11,fontWeight:700,color:T.textMuted,letterSpacing:"0.06em",textTransform:"uppercase"}}>Footnotes</span>
-            <span style={{background:isXref?"#E6F4EF":"#E8F0FB",border:`1px solid ${isXref?"#9CCEB4":"#ACC6E8"}`,borderRadius:5,padding:"3px 10px",fontSize:11,fontWeight:800,color:isXref?T.green:T.blue}}>
-              {isXref?"→ ":""}{title}
-            </span>
-          </div>
-          <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",color:T.textMuted,fontSize:20,lineHeight:1,padding:"2px 8px",borderRadius:6}}>×</button>
-        </div>
-        <div style={{padding:"16px 20px 20px",overflowY:"auto",flex:1}}>
-          <p style={{fontSize:14,color:T.text,lineHeight:1.8,margin:0}}>{text}</p>
+        <span style={{fontSize:11,fontWeight:700,color:"#000",letterSpacing:"0.06em",textTransform:"uppercase"}}>Footnotes</span>
+        <button onClick={onClose} onMouseDown={e=>e.stopPropagation()} aria-label="关闭" style={{background:"none",border:"none",cursor:"pointer",color:"#000",fontSize:28,lineHeight:1,padding:"2px 8px",borderRadius:8,fontWeight:300}}>×</button>
+      </div>
+      <div style={{padding:"16px 20px 20px",overflowY:"auto",flex:1}}>
+        <div style={{display:"flex",alignItems:"flex-start",gap:12}}>
+          <span style={{flexShrink:0,display:"inline-flex",alignItems:"center",justifyContent:"center",background:chipBg,border:`1px solid ${chipBorder}`,borderRadius:999,padding:"3px 12px",fontSize:12,fontWeight:700,color:chipColor,marginTop:2,letterSpacing:"0.02em"}}>
+            {isXref?"→ ":""}{title}
+          </span>
+          <p style={{fontSize:14,color:T.text,lineHeight:1.8,margin:0,flex:1,minWidth:0}}>{bodyRest}</p>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -1087,21 +1090,21 @@ export default function InvasiveBreastCancerNCCN({ sourceData, embedded = false 
         </div>
       </div>
 
-      <div style={{position:"absolute",right:24,top:12,zIndex:1004,display:"flex",gap:6,background:"#FFFFFFE6",backdropFilter:"blur(2px)",padding:6,border:"1px solid #D6E2F2",borderRadius:8,boxShadow:"0 6px 16px rgba(15,40,80,0.12)"}}>
-        <button onClick={zoomOut} style={{border:"1px solid #BFD3EA",background:"#fff",borderRadius:6,padding:"2px 8px",cursor:"pointer",fontWeight:700,color:T.blue}}>-</button>
-        <span style={{fontSize:11,color:T.textSec,minWidth:46,textAlign:"center",lineHeight:"24px"}}>{Math.round(zoom * 100)}%</span>
-        <button onClick={zoomIn} style={{border:"1px solid #BFD3EA",background:"#fff",borderRadius:6,padding:"2px 8px",cursor:"pointer",fontWeight:700,color:T.blue}}>+</button>
+      <div style={{position:"absolute",right:24,top:12,zIndex:1,display:"flex",gap:6,background:"#FFFFFFE6",backdropFilter:"blur(2px)",padding:6,border:"none",borderRadius:8,boxShadow:"0 6px 16px rgba(15,40,80,0.12)"}}>
+        <button onClick={zoomOut} style={{border:"1px solid #cbd5e1",background:"#fff",borderRadius:6,padding:"2px 8px",cursor:"pointer",fontWeight:700,color:"#000"}}>-</button>
+        <span style={{fontSize:11,color:"#000",minWidth:46,textAlign:"center",lineHeight:"24px"}}>{Math.round(zoom * 100)}%</span>
+        <button onClick={zoomIn} style={{border:"1px solid #cbd5e1",background:"#fff",borderRadius:6,padding:"2px 8px",cursor:"pointer",fontWeight:700,color:"#000"}}>+</button>
       </div>
 
       {/* Breadcrumb — clickable to scroll to any card */}
       <div style={{padding:0,background:"#F0F3F6"}}>
         <div style={{width:"100%",background:"#fff",borderTop:"1px solid #CCD8EE",borderRadius:0,padding:"8px 28px 2px"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:pathCollapsed?0:4}}>
-            <span style={{fontSize:10.5,fontWeight:800,color:T.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginRight:6,flexShrink:0}}>Current Path:</span>
+            <span style={{fontSize:10.5,fontWeight:800,color:"#000",textTransform:"uppercase",letterSpacing:"0.08em",marginRight:6,flexShrink:0}}>Current Path:</span>
             <button
               onClick={() => setPathCollapsed((v) => !v)}
               title={pathCollapsed ? "展开" : "收起"}
-              style={{width:28,height:28,display:"inline-flex",alignItems:"center",justifyContent:"center",border:"none",background:"transparent",cursor:"pointer",color:"#64748B",padding:0}}
+              style={{width:28,height:28,display:"inline-flex",alignItems:"center",justifyContent:"center",border:"none",background:"transparent",cursor:"pointer",color:"#000",padding:0}}
             >
               <span style={{display:"inline-block",fontSize:18,lineHeight:1,transform:pathCollapsed ? "rotate(180deg)" : "none"}}>
                 ▾
@@ -1111,14 +1114,14 @@ export default function InvasiveBreastCancerNCCN({ sourceData, embedded = false 
           {!pathCollapsed && (
             <div style={{flexWrap:"wrap",display:"flex",alignItems:"center",gap:2}}>
               {crumbs.map((c,i)=>{
-                const isCur=i===crumbs.length-1;
+                const isCur=c.colId===activeCardId;
                 return (
                   <span key={c.colId} style={{display:"flex",alignItems:"center",gap:2}}>
                     {i>0&&<span style={{color:"#ACC6E8",fontSize:14,margin:"0 3px"}}>›</span>}
                     <span
                       onClick={()=>scrollTo(c.colId)}
-                      style={{fontSize:12,color:isCur?T.blue:T.textSec,fontWeight:isCur?700:400,cursor:"pointer",textDecoration:"underline",textDecorationColor:"transparent",transition:"text-decoration-color 0.15s"}}
-                      onMouseEnter={(e)=>{ e.currentTarget.style.textDecorationColor=T.blue; showTooltip(e, c.label); }}
+                      style={{fontSize:12,color:"#000",fontWeight:isCur?700:400,cursor:"pointer",textDecoration:"underline",textDecorationColor:"transparent",transition:"text-decoration-color 0.15s"}}
+                      onMouseEnter={(e)=>{ e.currentTarget.style.textDecorationColor="#000"; showTooltip(e, c.label); }}
                       onMouseMove={moveTooltip}
                       onMouseLeave={(e)=>{ e.currentTarget.style.textDecorationColor="transparent"; hideTooltip(); }}
                     >

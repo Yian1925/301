@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { DISEASE_SYNTHESIS_TRACKS } from '../../data/synthesis';
 import { LITERATURE_EVIDENCE } from '../../data/literature';
 import { PATIENTS } from '../../data/emr/patients';
@@ -79,13 +79,47 @@ export default function SynthesisPage() {
     setGuidelineTocId,
     setLiteratureFocusEvidenceId,
     setLiteratureDeepLink,
-    setPatientsListDeepLink,
     setSynthesisEntryTarget,
   } = useAppStore();
   const { askQuestion } = useAgent();
 
   const [diseaseId, setDiseaseId] = useState(DISEASE_SYNTHESIS_TRACKS[0]?.id ?? '');
   const [stageId, setStageId] = useState<string>('');
+  const [diseaseDropdownOpen, setDiseaseDropdownOpen] = useState(false);
+  const [diseaseKeyword, setDiseaseKeyword] = useState('');
+  const diseaseDropdownRef = useRef<HTMLDivElement | null>(null);
+  const diseaseInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (!diseaseDropdownOpen) {
+      setDiseaseKeyword('');
+      return;
+    }
+    const onDown = (e: MouseEvent) => {
+      if (!diseaseDropdownRef.current) return;
+      if (!diseaseDropdownRef.current.contains(e.target as Node)) {
+        setDiseaseDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDown, true);
+    return () => document.removeEventListener('mousedown', onDown, true);
+  }, [diseaseDropdownOpen]);
+
+  const filteredDiseaseTracks = useMemo(() => {
+    const k = diseaseKeyword.trim();
+    if (!k) return DISEASE_SYNTHESIS_TRACKS;
+    return DISEASE_SYNTHESIS_TRACKS.filter((t) => t.name.includes(k));
+  }, [diseaseKeyword]);
+
+  const handlePickDisease = (id: string) => {
+    setDiseaseId(id);
+    const t = DISEASE_SYNTHESIS_TRACKS.find((x) => x.id === id);
+    const first = t ? [...t.stages].sort((a, b) => a.order - b.order)[0] : undefined;
+    if (first) setStageId(first.id);
+    setDiseaseDropdownOpen(false);
+    setDiseaseKeyword('');
+    diseaseInputRef.current?.blur();
+  };
 
   const track = useMemo(
     () => DISEASE_SYNTHESIS_TRACKS.find((t) => t.id === diseaseId) ?? DISEASE_SYNTHESIS_TRACKS[0],
@@ -181,14 +215,6 @@ export default function SynthesisPage() {
     setPage('literature');
   };
 
-  const openRwdLibrary = () => {
-    setPatientsListDeepLink({
-      diagnosisKeywords: track.rwdDiagnosisKeywords ?? [],
-    });
-    setSynthesisEntryTarget('patients');
-    setPage('patients');
-  };
-
   const sendOverviewToAgent = () => {
     const q = track.agentOverviewQuestion?.trim();
     if (!q) return;
@@ -199,54 +225,97 @@ export default function SynthesisPage() {
   return (
     <div className="syn-page syn-page--bp">
       <header className="syn-bp-header">
-        <h1 className="syn-bp-page-title">综合展示</h1>
 
         <div className="syn-bp-toolbar">
           <div className="syn-bp-toolbar-primary">
-            <label className="syn-bp-disease-label" htmlFor="syn-disease-select">
-              专题病种
-            </label>
-            <select
-              id="syn-disease-select"
-              className="syn-bp-disease-select"
-              value={diseaseId}
-              onChange={(e) => {
-                const id = e.target.value;
-                setDiseaseId(id);
-                const t = DISEASE_SYNTHESIS_TRACKS.find((x) => x.id === id);
-                const first = t ? [...t.stages].sort((a, b) => a.order - b.order)[0] : undefined;
-                if (first) setStageId(first.id);
-              }}
-            >
-              {DISEASE_SYNTHESIS_TRACKS.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
-            <span className="syn-bp-updated syn-bp-updated--inline">{track.lastUpdatedLabel}</span>
+            <p className="syn-bp-dek">{track.subtitle}</p>
+            <p className="syn-bp-pathway-line">
+              {track.pathwaySourceLabel}
+              <span className="syn-bp-pathway-sep" aria-hidden>·</span>
+              {track.lastUpdatedLabel}
+            </p>
           </div>
-          <nav className="syn-bp-module-nav" aria-label="系统模块">
-            <button type="button" className="syn-bp-inline-action" onClick={openGuideline}>
-              诊疗路径
-            </button>
-            <span className="syn-bp-inline-sep" aria-hidden>
-              |
-            </span>
-            <button type="button" className="syn-bp-inline-action" onClick={openLiteratureLibrary}>
-              文献证据
-            </button>
-            <span className="syn-bp-inline-sep" aria-hidden>
-              |
-            </span>
-            <button type="button" className="syn-bp-inline-action" onClick={openRwdLibrary}>
-              电子病历
-            </button>
-          </nav>
+          <div className="gl-search-select syn-bp-disease-dropdown" ref={diseaseDropdownRef}>
+            <div className={`gl-search-select-row ${diseaseDropdownOpen ? 'open' : ''}`}>
+              <div className="gl-search-select-trigger">
+                <input
+                  ref={diseaseInputRef}
+                  type="text"
+                  className="gl-search-select-input"
+                  value={diseaseDropdownOpen ? diseaseKeyword : track.name}
+                  placeholder={track.name}
+                  aria-haspopup="listbox"
+                  aria-expanded={diseaseDropdownOpen}
+                  aria-label="搜索专题病种"
+                  onFocus={() => setDiseaseDropdownOpen(true)}
+                  onChange={(e) => {
+                    setDiseaseKeyword(e.target.value);
+                    if (!diseaseDropdownOpen) setDiseaseDropdownOpen(true);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setDiseaseDropdownOpen(false);
+                      diseaseInputRef.current?.blur();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  className={`gl-search-select-chev-btn ${diseaseDropdownOpen ? 'open' : ''}`}
+                  onClick={() => {
+                    setDiseaseDropdownOpen((v) => !v);
+                    if (!diseaseDropdownOpen) diseaseInputRef.current?.focus();
+                  }}
+                  aria-label={diseaseDropdownOpen ? '收起列表' : '展开列表'}
+                  tabIndex={-1}
+                >
+                  <svg className="gl-search-select-chev" viewBox="0 0 12 12" aria-hidden="true">
+                    <path d="M3 4.5L6 7.5L9 4.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+                {diseaseDropdownOpen && (
+                  <div className="gl-search-select-pop" role="listbox">
+                    <div className="gl-search-select-list">
+                      {filteredDiseaseTracks.length === 0 ? (
+                        <div className="gl-search-select-empty">无匹配项</div>
+                      ) : (
+                        filteredDiseaseTracks.map((t) => (
+                          <div
+                            key={t.id}
+                            className={`gl-search-select-child syn-bp-disease-option ${diseaseId === t.id ? 'active' : ''}`}
+                            role="option"
+                            aria-selected={diseaseId === t.id}
+                            tabIndex={0}
+                            onClick={() => handlePickDisease(t.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                handlePickDisease(t.id);
+                              }
+                            }}
+                          >
+                            <span>{t.name}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                className="gl-search-select-btn"
+                onClick={() => {
+                  setDiseaseDropdownOpen(true);
+                  diseaseInputRef.current?.focus();
+                }}
+                aria-label="专题病种"
+              >
+                <span>专题病种</span>
+              </button>
+            </div>
+          </div>
         </div>
-
-        <p className="syn-bp-dek">{track.subtitle}</p>
-        <p className="syn-bp-pathway-line">{track.pathwaySourceLabel}</p>
       </header>
 
       <div className="syn-bp-body">
@@ -377,9 +446,6 @@ export default function SynthesisPage() {
             </div>
             <div className="syn-bp-panel-source-row">
               <span className="syn-bp-panel-source">{track.rwdDataSource}</span>
-              <button type="button" className="syn-bp-text-link" onClick={openRwdLibrary}>
-                进入电子病历模块
-              </button>
             </div>
             <p className="syn-bp-prose">诊疗归纳：{institutionClinicalSummary}</p>
             {casePreviewRows.length > 0 ? (

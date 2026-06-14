@@ -10,7 +10,9 @@ import PatientSelector from './components/emr/PatientSelector';
 import PatientsPage from './components/emr/PatientsPage';
 import LiteraturePage from './components/literature/LiteraturePage';
 import SynthesisPage from './components/synthesis/SynthesisPage';
+import LoginPage from './components/auth/LoginPage';
 import './styles/platform.css';
+import './styles/login.css';
 
 const GuidelineViewer = lazy(() => import('./components/guidelines/GuidelineViewer'));
 
@@ -20,6 +22,7 @@ function AppContent() {
   const { doc } = useGuideline();
   const [emrModalOpen, setEmrModalOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
     if (!toast) return;
@@ -41,9 +44,13 @@ function AppContent() {
     askQuestion(`请详细解释「${nodeTitle}」的临床意义和操作规范`);
   };
 
+  if (!authed) {
+    return <LoginPage onLogin={() => setAuthed(true)} />;
+  }
+
   const pageConfig =
     page === 'chat'
-      ? { title: 'Agent 问答', badge: undefined }
+      ? { title: '智能助手', badge: undefined }
       : page === 'guidelines'
         ? { title: '诊疗路径', badge: undefined }
         : page === 'patients'

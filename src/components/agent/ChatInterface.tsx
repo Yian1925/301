@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import ChatMessage from './ChatMessage';
+import StructuredAnswer from './StructuredAnswer';
+import { findFixedAnswer, FIXED_AGENT_ANSWERS } from '../../data/agentAnswers';
+import type { StructuredAnswerData } from '../../data/agentAnswers';
 import type { ChatMessage as ChatMessageType, ChatSourceLink } from '../../types';
 import { useAppStore } from '../../store';
-import PatientJourneyV4 from '../emr/PatientJourneyV4';
-import { usePatientTimeline } from '../../hooks/usePatientTimeline';
 
 interface ChatInterfaceProps {
   messages: ChatMessageType[];
@@ -14,27 +15,133 @@ interface ChatInterfaceProps {
   patientLabel: string;
 }
 
-const DEFAULT_QUESTION_TYPE = '治疗选择';
-const DEFAULT_OUTPUT_TEMPLATE = 'MDT讨论版';
-const QUICK_ASK_EXAMPLES = [
-  'HER2-low 晚期乳腺癌在内分泌经治后，何时优先选择 ADC？',
-  '局部晚期宫颈癌同步放化疗时，哪些患者可以考虑免疫联合？',
-  '保乳术后高龄 HR+ 低危患者，省略放疗的边界条件是什么？',
+const QUICK_CARD_TITLES = ['ADC用药时机', '宫颈癌免疫联合', '保乳放疗省略条件'] as const;
+
+const STAGE_LABELS = [
+  '问题重述',
+  '路径对照',
+  '证据归纳',
+  '执行要点',
+  '待决策',
+  'MDT 草案',
 ] as const;
 
-function inferDiseaseAndStageFromPatientDiagnosis(diagnosis: string): { disease: string; stage: string } {
-  const lower = diagnosis.toLowerCase();
-  if (lower.includes('宫颈')) {
-    return { disease: '宫颈癌', stage: '初评、诊断与分期' };
+const LOADING_MS = 1200;
+const STAGE_GAP_MS = 350;
+
+function renderQuickAskIcon(idx: number) {
+  const common = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
+  if (idx === 0) {
+    return (
+      <svg width="18" height="18" viewBox="0 0 20 20" {...common} aria-hidden="true">
+        <path d="M7.5 3.5h5l2 3.5-2 3.5h-5l-2-3.5 2-3.5Z" />
+        <path d="M6 11.5v5" />
+        <path d="M14 11.5v5" />
+      </svg>
+    );
   }
-  if (lower.includes('乳腺') || lower.includes('breast')) {
-    return { disease: '浸润性乳腺癌', stage: '初评、病理与分子分型' };
+  if (idx === 1) {
+    return (
+      <svg width="18" height="18" viewBox="0 0 20 20" {...common} aria-hidden="true">
+        <path d="M10 2.8 16.8 6v6.2c0 3.5-2.7 5.5-6.8 5.9-4.1-.4-6.8-2.4-6.8-5.9V6L10 2.8Z" />
+        <path d="M7.2 10.2l1.9 1.9 3.7-4.2" />
+      </svg>
+    );
   }
-  if (lower.includes('肺') || lower.includes('lung')) {
-    return { disease: '肺癌', stage: '初评、诊断与分期' };
+  return (
+    <svg width="18" height="18" viewBox="0 0 20 20" {...common} aria-hidden="true">
+      <path d="M4.2 12.4c2.2-6 9.4-6.3 11.6 0" />
+      <path d="M10 3.3c0 1.8 0 3.4 0 5.2" />
+      <path d="M7.1 14.7h5.8" />
+    </svg>
+  );
+}
+
+interface AnswerStepperProps {
+  loadingStage: number | null;
+  doneStages: Set<number>;
+}
+
+function AnswerStepper({ loadingStage, doneStages }: AnswerStepperProps) {
+  const doneCount = doneStages.size;
+  const total = STAGE_LABELS.length;
+  const allDone = doneCount === total;
+  const currentLabel = loadingStage ? STAGE_LABELS[loadingStage - 1] : null;
+
+  let statusText = '';
+  if (allDone) {
+    statusText = `已完成全部 ${total} 个结构模块`;
+  } else if (loadingStage) {
+    statusText = `回答进度 ${doneCount} / ${total} 已完成 · 正在生成「${currentLabel}」`;
+  } else {
+    statusText = `回答进度 ${doneCount} / ${total} 已完成`;
   }
-  // fallback: keep diagnosis truthfully instead of forcing a known demo disease
-  return { disease: diagnosis || '未指定病种', stage: '阶段待结合病程判定' };
+
+  return (
+    <div className="ans-stepper-card">
+      <div className="ans-stepper-head">
+        <span className="ans-stepper-status">{statusText}</span>
+        {!allDone && loadingStage && (
+          <span className="ans-stepper-timer ans-stepper-timer--running">生成中…</span>
+        )}
+        {allDone && (
+          <span className="ans-stepper-timer">全部完成</span>
+        )}
+      </div>
+      <ol className="ans-stepper">
+        {STAGE_LABELS.map((label, i) => {
+          const n = i + 1;
+          const done = doneStages.has(n);
+          const running = loadingStage === n;
+          const state = done ? 'done' : running ? 'running' : 'pending';
+          const next = n < total;
+          const nextDone = doneStages.has(n + 1);
+          const connState = done && (nextDone || loadingStage === n + 1)
+            ? 'done'
+            : done
+              ? 'active'
+              : 'pending';
+          return (
+            <li key={label} className={`ans-step ans-step--${state}`}>
+              <div className="ans-step-node-wrap">
+                <span className={`ans-step-node ans-step-node--${state}`}>
+                  {done ? (
+                    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden>
+                      <path
+                        d="M3.5 8.5l3 3 6-7"
+                        fill="none"
+                        stroke="#fff"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  ) : running ? (
+                    <span className="ans-step-pulse" />
+                  ) : (
+                    <span className="ans-step-num">{n}</span>
+                  )}
+                </span>
+                {next && <span className={`ans-step-conn ans-step-conn--${connState}`} />}
+              </div>
+              <span className={`ans-step-label ans-step-label--${state}`}>
+                <span className="ans-step-label-no">{['①','②','③','④','⑤','⑥'][i]}</span> {label}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+      {!allDone && (
+        <div className="ans-stepper-foot">
+          <span className="ans-stepper-foot-hint">
+            {loadingStage
+              ? `当前模块生成中，完成后将自动进入下一阶段（${doneCount + 1} / ${total}）`
+              : '准备进入下一模块…'}
+          </span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function ChatInterface({
@@ -42,16 +149,19 @@ export default function ChatInterface({
   loading,
   onSendMessage,
   onResetChat,
-  onOpenPatientSelector,
-  patientLabel,
 }: ChatInterfaceProps) {
-  const [activeTab, setActiveTab] = useState<'patient' | 'question'>('question');
-  const [patientConcern, setPatientConcern] = useState('');
   const [quickQuestion, setQuickQuestion] = useState('');
-  const [showJourneyFullscreen, setShowJourneyFullscreen] = useState(false);
+  const [structuredAnswer, setStructuredAnswer] = useState<StructuredAnswerData | null>(null);
+  const [activeFixed, setActiveFixed] = useState<StructuredAnswerData | null>(null);
+  const [loadingStage, setLoadingStage] = useState<number | null>(null);
+  const [doneStages, setDoneStages] = useState<Set<number>>(new Set());
+  const streamingRef = useRef(false);
   const areaRef = useRef<HTMLDivElement>(null);
+  const loadTimerRef = useRef<number | null>(null);
+  const gapTimerRef = useRef<number | null>(null);
+  const activeFixedRef = useRef<StructuredAnswerData | null>(null);
+
   const {
-    patient,
     setPage,
     setGuidelineTocId,
     setLiteratureFocusEvidenceId,
@@ -62,50 +172,99 @@ export default function ChatInterface({
     setChatEntryTarget,
   } = useAppStore();
 
-  const timelineId =
-    patient == null
-      ? null
-      : patient.hasTimeline === false
-        ? null
-        : patient.timelineId ?? patient.admissionId ?? null;
-  const { data: timelineData, loading: timelineLoading } = usePatientTimeline(timelineId);
+  useEffect(() => {
+    if (!areaRef.current) return;
+    areaRef.current.scrollTop = 0;
+  }, []);
 
   useEffect(() => {
-    if (areaRef.current) areaRef.current.scrollTop = areaRef.current.scrollHeight;
+    if (!areaRef.current) return;
+    if (messages.length === 0) return;
+    areaRef.current.scrollTop = areaRef.current.scrollHeight;
   }, [messages, loading]);
 
-  useEffect(() => {
-    if (!patient) return;
-    setActiveTab('patient');
-    if (!patientConcern.trim()) {
-      setPatientConcern(`请基于住院号 ${patient.admissionId} 的病程，给出本阶段的关键诊疗决策、风险监测点和下一步策略。`);
+  const clearTimers = () => {
+    if (loadTimerRef.current) {
+      window.clearTimeout(loadTimerRef.current);
+      loadTimerRef.current = null;
     }
-  }, [patient, patientConcern]);
+    if (gapTimerRef.current) {
+      window.clearTimeout(gapTimerRef.current);
+      gapTimerRef.current = null;
+    }
+  };
 
-  const handlePatientRun = () => {
-    if (!patient) return;
-    const inferred = inferDiseaseAndStageFromPatientDiagnosis(patient.diagnosis);
-    const question = patientConcern.trim();
-    if (!question) return;
-    const composed = [
-      `病种：${inferred.disease}`,
-      `阶段：${inferred.stage}`,
-      `问题类型：${DEFAULT_QUESTION_TYPE}`,
-      `输出模板：${DEFAULT_OUTPUT_TEMPLATE}`,
-      `当前问题：${question}`,
-    ].join('\n');
-    onSendMessage(composed);
+  useEffect(() => () => clearTimers(), []);
+
+  const startStage = (n: number) => {
+    const fixed = activeFixedRef.current;
+    if (!fixed) return;
+    clearTimers();
+    setLoadingStage(n);
+    loadTimerRef.current = window.setTimeout(() => {
+      setDoneStages((prev) => {
+        const next = new Set(prev);
+        next.add(n);
+        return next;
+      });
+      setLoadingStage(null);
+      if (n === 1) {
+        setStructuredAnswer(fixed);
+      }
+      if (n < STAGE_LABELS.length) {
+        gapTimerRef.current = window.setTimeout(() => {
+          startStage(n + 1);
+        }, STAGE_GAP_MS);
+      } else {
+        streamingRef.current = false;
+      }
+    }, LOADING_MS);
   };
 
   const handleQuickAsk = () => {
     const q = quickQuestion.trim();
     if (!q) return;
     setQuickQuestion('');
+    const fixed = findFixedAnswer(q);
+    if (fixed) {
+      setStructuredAnswer(null);
+      activeFixedRef.current = fixed;
+      setActiveFixed(fixed);
+      setDoneStages(new Set());
+      setLoadingStage(null);
+      streamingRef.current = true;
+      startStage(1);
+      return;
+    }
     onSendMessage(q);
   };
 
+  const handleReset = () => {
+    clearTimers();
+    streamingRef.current = false;
+    activeFixedRef.current = null;
+    setStructuredAnswer(null);
+    setActiveFixed(null);
+    setDoneStages(new Set());
+    setLoadingStage(null);
+    onResetChat();
+  };
+
+  const handleUpdateQuestion = (next: string) => {
+    setStructuredAnswer((prev) => (prev ? { ...prev, question: next } : prev));
+  };
+
+  const handleRegenerate = () => {
+    if (!activeFixedRef.current) return;
+    clearTimers();
+    setStructuredAnswer(null);
+    setDoneStages(new Set());
+    setLoadingStage(null);
+    streamingRef.current = true;
+    startStage(1);
+  };
+
   const goToResource = (source: ChatSourceLink) => {
-    // clear synthesis return context when jumping from chat sources
     setSynthesisEntryTarget(null);
     if (source.targetPage === 'guidelines') {
       setChatEntryTarget('guidelines');
@@ -134,107 +293,30 @@ export default function ChatInterface({
     setPage('patients');
   };
 
+  const isStreaming = !!activeFixed && (loadingStage !== null || doneStages.size < STAGE_LABELS.length);
+  const showSkeleton = !activeFixed && !structuredAnswer;
+  const showAnswer = !!activeFixed;
+
   return (
     <>
       <div className="chat-area" ref={areaRef}>
-        <div className="agent-workbench">
+        <div className="agent-workbench agent-workbench--v3">
           <div className="agent-workbench-head">
-            <h2 className="agent-workbench-title">Agent 问答工作台</h2>
-            <button type="button" className="agent-outline-btn" onClick={onResetChat}>
-              新建会话
-            </button>
-          </div>
-
-          <div className="agent-tab-row" role="tablist" aria-label="Agent 问答模式">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'patient'}
-              className={`agent-tab-btn ${activeTab === 'patient' ? 'active' : ''}`}
-              onClick={() => setActiveTab('patient')}
-            >
-              导入患者
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'question'}
-              className={`agent-tab-btn ${activeTab === 'question' ? 'active' : ''}`}
-              onClick={() => setActiveTab('question')}
-            >
-              直接提问
-            </button>
-          </div>
-
-          {activeTab === 'patient' ? (
-            <div className="agent-patient-flow">
-              <button type="button" className="patient-pill" onClick={onOpenPatientSelector}>
-                <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <circle cx="10" cy="8" r="4" />
-                  <path d="M3 18c0-4 3-6 7-6s7 2 7 6" />
-                </svg>
-                {patientLabel}
-              </button>
-              {patient ? (
-                <>
-                  <p className="agent-patient-flow-text">
-                    已导入患者：<strong>{patient.name}</strong>（住院号 {patient.admissionId}）· {patient.diagnosis}
-                  </p>
-                  <p className="agent-section-kicker">系统已自动识别病种与阶段，你只需补充当前要讨论的问题。</p>
-                  <div className="agent-journey-inline">
-                    {timelineLoading ? (
-                      <div className="agent-journey-empty">正在加载患者旅程图…</div>
-                    ) : timelineData ? (
-                      <PatientJourneyV4 listPatient={patient} data={timelineData} loading={timelineLoading} />
-                    ) : (
-                      <div className="agent-journey-empty">该患者暂无可展示旅程图。</div>
-                    )}
-                  </div>
-                  <div className="agent-patient-flow-actions">
-                    <button
-                      type="button"
-                      className="agent-outline-btn"
-                      onClick={() => setShowJourneyFullscreen(true)}
-                      disabled={!timelineData}
-                    >
-                      全屏查看当前导入病程
-                    </button>
-                  </div>
-
-                  <div className="agent-question-box">
-                    <textarea
-                      value={patientConcern}
-                      onChange={(e) => setPatientConcern(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                          e.preventDefault();
-                          handlePatientRun();
-                        }
-                      }}
-                      placeholder="基于该患者，输入当前最需要讨论的问题（Cmd/Ctrl + Enter 发送）"
-                      rows={3}
-                    />
-                    <div className="agent-question-actions">
-                      <button type="button" className="agent-run-btn" onClick={handlePatientRun}>
-                        基于该患者生成回答
-                      </button>
-                    </div>
-                  </div>
-                </>
-              ) : null}
+            <div className="agent-workbench-head-text">
+              <p className="agent-workbench-subtitle">
+                每次回答固定展开为 6 个结构模块，方便医生快速核对与 MDT 讨论
+              </p>
             </div>
-          ) : (
-            <div className="agent-quick-ask">
-              <div className="agent-section-kicker">直接提问（无需导入患者）</div>
-              <div className="agent-presets">
-                {QUICK_ASK_EXAMPLES.map((q, idx) => (
-                  <button key={q} type="button" className="chip" onClick={() => setQuickQuestion(q)}>
-                    {idx + 1}. {q}
-                  </button>
-                ))}
-              </div>
-              <div className="agent-quick-ask-row">
+            <button type="button" className="agent-outline-btn agent-outline-btn--pill" onClick={handleReset}>
+              新建问答
+            </button>
+          </div>
+
+          {!isStreaming && !showAnswer && (
+            <div className="agent-input-card">
+              <div className="agent-input-row">
                 <textarea
+                  className="agent-input-textarea"
                   value={quickQuestion}
                   onChange={(e) => setQuickQuestion(e.target.value)}
                   onKeyDown={(e) => {
@@ -243,27 +325,77 @@ export default function ChatInterface({
                       handleQuickAsk();
                     }
                   }}
-                  placeholder="示例：HER2-low 晚期乳腺癌在内分泌经治后，何时优先选择 ADC？（Cmd/Ctrl + Enter 发送）"
+                  placeholder="输入临床问题、患者特征、决策或治疗场景，回答将自动展开为固定结构子模块"
                   rows={2}
                 />
-                <button type="button" className="agent-run-btn" onClick={handleQuickAsk}>
-                  直接提问
+                <button
+                  type="button"
+                  className="agent-input-send"
+                  onClick={handleQuickAsk}
+                  disabled={!quickQuestion.trim()}
+                >
+                  生成回答
                 </button>
+              </div>
+              <div className="agent-template-row">
+                <span className="agent-template-row-label">示例提示词</span>
+                <div className="agent-template-chips">
+                  {FIXED_AGENT_ANSWERS.map((a, idx) => (
+                    <button
+                      key={a.templateKey}
+                      type="button"
+                      className="agent-template-chip"
+                      onClick={() => setQuickQuestion(a.question)}
+                      title={a.question}
+                    >
+                      <span className="agent-template-chip-icon" aria-hidden>
+                        {renderQuickAskIcon(idx)}
+                      </span>
+                      <span className="agent-template-chip-text">{QUICK_CARD_TITLES[idx] ?? `示例${idx + 1}`}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
+
+          {showAnswer && (
+            <AnswerStepper
+              loadingStage={loadingStage}
+              doneStages={doneStages}
+            />
+          )}
         </div>
 
-        {messages.map((msg) => (
-          <ChatMessage
-            key={msg.id}
-            role={msg.role}
-            text={msg.text}
-            sources={msg.sources}
-            onSourceClick={goToResource}
+        {showSkeleton && (
+          <StructuredAnswer
+            answer={null}
+            doneStages={new Set()}
+            loadingStage={null}
           />
-        ))}
-        {loading && (
+        )}
+
+        {showAnswer && (
+          <StructuredAnswer
+            answer={structuredAnswer}
+            doneStages={doneStages}
+            loadingStage={loadingStage}
+            onUpdateQuestion={handleUpdateQuestion}
+            onRegenerate={handleRegenerate}
+          />
+        )}
+
+        {!showAnswer && !showSkeleton &&
+          messages.map((msg) => (
+            <ChatMessage
+              key={msg.id}
+              role={msg.role}
+              text={msg.text}
+              sources={msg.sources}
+              onSourceClick={goToResource}
+            />
+          ))}
+        {!showAnswer && loading && (
           <div className="msg-row ai">
             <div className="avatar ai">AI</div>
             <div className="bubble ai">
@@ -274,28 +406,6 @@ export default function ChatInterface({
           </div>
         )}
       </div>
-      {showJourneyFullscreen ? (
-        <div className="agent-journey-modal" role="dialog" aria-modal="true" aria-label="当前导入患者完整病程">
-          <div className="agent-journey-modal-card">
-            <div className="agent-journey-modal-head">
-              <div className="agent-journey-modal-title">
-                当前导入患者完整病程
-                {patient ? ` · ${patient.name}（${patient.admissionId}）` : ''}
-              </div>
-              <button type="button" className="agent-outline-btn" onClick={() => setShowJourneyFullscreen(false)}>
-                关闭
-              </button>
-            </div>
-            <div className="agent-journey-modal-body">
-              {patient && timelineData ? (
-                <PatientJourneyV4 listPatient={patient} data={timelineData} loading={timelineLoading} />
-              ) : (
-                <div className="agent-journey-empty">该患者暂无可展示旅程图。</div>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : null}
     </>
   );
 }

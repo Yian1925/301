@@ -457,7 +457,7 @@
 
 .patients-risk-low {
   background: #d0ebe4;
-  color: #209f85;
+  color: #0e8e7d;
 }
 
 .patients-tag-pill {
@@ -527,7 +527,7 @@
 }
 
 .patients-page-btn.active {
-  background: #209f85;
+  background: #0e8e7d;
   color: #fff;
 }
 
@@ -574,8 +574,8 @@
 }
 
 .patients-back-btn:hover {
-  border-color: #209f85;
-  color: #209f85;
+  border-color: #0e8e7d;
+  color: #0e8e7d;
 }
 
 .patients-journey-title {
