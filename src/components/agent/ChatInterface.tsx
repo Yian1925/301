@@ -251,17 +251,20 @@ export default function ChatInterface({
   };
 
   const handleUpdateQuestion = (next: string) => {
-    setStructuredAnswer((prev) => (prev ? { ...prev, question: next } : prev));
+    setStructuredAnswer((prev) => (prev ? { ...prev, contextLine: next } : prev));
+    if (activeFixedRef.current) {
+      activeFixedRef.current = { ...activeFixedRef.current, contextLine: next };
+      setActiveFixed(activeFixedRef.current);
+    }
   };
 
   const handleRegenerate = () => {
     if (!activeFixedRef.current) return;
     clearTimers();
-    setStructuredAnswer(null);
-    setDoneStages(new Set());
+    setDoneStages(new Set([1]));
     setLoadingStage(null);
     streamingRef.current = true;
-    startStage(1);
+    startStage(2);
   };
 
   const goToResource = (source: ChatSourceLink) => {

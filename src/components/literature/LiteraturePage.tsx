@@ -225,9 +225,11 @@ export default function LiteraturePage() {
   );
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerWidth, setDrawerWidth] = useState(() =>
-    typeof window === 'undefined' ? 960 : Math.max(480, Math.floor(window.innerWidth / 2))
-  );
+  const [drawerWidth, setDrawerWidth] = useState(() => {
+    if (typeof window === 'undefined') return 1280;
+    const reserveLeft = 560;
+    return Math.max(720, window.innerWidth - reserveLeft);
+  });
   const drawerResizingRef = useRef(false);
 
   const openDetail = (id: string) => {
