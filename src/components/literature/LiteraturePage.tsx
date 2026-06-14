@@ -91,9 +91,11 @@ export default function LiteraturePage() {
     setLiteratureDeepLink,
   } = useAppStore();
   const [q, setQ] = useState('');
-  const [cat, setCat] = useState<LiteratureEvidenceCategory | ''>('');
-  const [gradeFilter, setGradeFilter] = useState<EvidenceGradeCode | ''>('');
-  const [designFilter, setDesignFilter] = useState<StudyDesignCode | ''>('');
+  const [cats, setCats] = useState<LiteratureEvidenceCategory[]>([]);
+  const [gradeFilters, setGradeFilters] = useState<EvidenceGradeCode[]>([]);
+  const [designFilters, setDesignFilters] = useState<StudyDesignCode[]>([]);
+  const toggleInArray = <T,>(arr: T[], v: T): T[] =>
+    arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
   const [selectedId, setSelectedId] = useState<string | null>(null);
   /** 综合展示进入时限定列表；null 表示不限制 */
   const [synthesisRestrictIds, setSynthesisRestrictIds] = useState<string[] | null>(null);
@@ -119,9 +121,9 @@ export default function LiteraturePage() {
       const { restrictToEvidenceIds, focusEvidenceId } = literatureDeepLink;
       setLiteratureDeepLink(null);
       setQ('');
-      setCat('');
-      setGradeFilter('');
-      setDesignFilter('');
+      setCats([]);
+      setGradeFilters([]);
+      setDesignFilters([]);
       const validIds = restrictToEvidenceIds.filter((id) => LITERATURE_EVIDENCE.some((e) => e.id === id));
       setSynthesisRestrictIds(validIds.length > 0 ? validIds : null);
       const focus =
@@ -135,9 +137,9 @@ export default function LiteraturePage() {
     setLiteratureFocusEvidenceId(null);
     if (!LITERATURE_EVIDENCE.some((e) => e.id === id)) return;
     setQ('');
-    setCat('');
-    setGradeFilter('');
-    setDesignFilter('');
+    setCats([]);
+    setGradeFilters([]);
+    setDesignFilters([]);
     setSynthesisRestrictIds(null);
     setSelectedId(id);
   }, [
@@ -165,12 +167,12 @@ export default function LiteraturePage() {
   const filtered = useMemo(() => {
     const qq = q.trim().toLowerCase();
     return pool.filter((ev) => {
-      if (cat && ev.category !== cat) return false;
-      if (gradeFilter && ev.evidenceGrade !== gradeFilter) return false;
-      if (designFilter && ev.studyDesign !== designFilter) return false;
+      if (cats.length > 0 && !cats.includes(ev.category)) return false;
+      if (gradeFilters.length > 0 && !gradeFilters.includes(ev.evidenceGrade)) return false;
+      if (designFilters.length > 0 && !designFilters.includes(ev.studyDesign)) return false;
       return matchesQuery(ev, qq);
     });
-  }, [q, cat, gradeFilter, designFilter, pool]);
+  }, [q, cats, gradeFilters, designFilters, pool]);
 
   const countFor = useMemo(() => {
     const qq = q.trim().toLowerCase();
@@ -179,35 +181,35 @@ export default function LiteraturePage() {
         pool.filter(
           (ev) =>
             ev.category === val &&
-            (!gradeFilter || ev.evidenceGrade === gradeFilter) &&
-            (!designFilter || ev.studyDesign === designFilter) &&
+            (gradeFilters.length === 0 || gradeFilters.includes(ev.evidenceGrade)) &&
+            (designFilters.length === 0 || designFilters.includes(ev.studyDesign)) &&
             matchesQuery(ev, qq)
         ).length,
       grade: (val: EvidenceGradeCode) =>
         pool.filter(
           (ev) =>
             ev.evidenceGrade === val &&
-            (!cat || ev.category === cat) &&
-            (!designFilter || ev.studyDesign === designFilter) &&
+            (cats.length === 0 || cats.includes(ev.category)) &&
+            (designFilters.length === 0 || designFilters.includes(ev.studyDesign)) &&
             matchesQuery(ev, qq)
         ).length,
       design: (val: StudyDesignCode) =>
         pool.filter(
           (ev) =>
             ev.studyDesign === val &&
-            (!cat || ev.category === cat) &&
-            (!gradeFilter || ev.evidenceGrade === gradeFilter) &&
+            (cats.length === 0 || cats.includes(ev.category)) &&
+            (gradeFilters.length === 0 || gradeFilters.includes(ev.evidenceGrade)) &&
             matchesQuery(ev, qq)
         ).length,
     };
-  }, [pool, q, cat, gradeFilter, designFilter]);
+  }, [pool, q, cats, gradeFilters, designFilters]);
 
   const clearAllFilters = () => {
-    setCat('');
-    setGradeFilter('');
-    setDesignFilter('');
+    setCats([]);
+    setGradeFilters([]);
+    setDesignFilters([]);
   };
-  const hasAnyFilter = Boolean(cat || gradeFilter || designFilter);
+  const hasAnyFilter = cats.length > 0 || gradeFilters.length > 0 || designFilters.length > 0;
 
   useEffect(() => {
     if (filtered.length === 0) {
@@ -339,14 +341,14 @@ export default function LiteraturePage() {
             <ul className="lit-check-list">
               {CATEGORY_OPTIONS.filter((o) => o.value !== '').map((o) => {
                 const v = o.value as LiteratureEvidenceCategory;
-                const checked = cat === v;
+                const checked = cats.includes(v);
                 const n = countFor.category(v);
                 return (
                   <li key={v}>
                     <button
                       type="button"
                       className={`lit-check-item ${checked ? 'lit-check-item--on' : ''}`}
-                      onClick={() => setCat(checked ? '' : v)}
+                      onClick={() => setCats((arr) => toggleInArray(arr, v))}
                       aria-pressed={checked}
                     >
                       <span className={`lit-check-box ${checked ? 'lit-check-box--on' : ''}`} aria-hidden>
@@ -369,14 +371,14 @@ export default function LiteraturePage() {
             <ul className="lit-check-list">
               {GRADE_OPTIONS.filter((o) => o.value !== '').map((o) => {
                 const v = o.value as EvidenceGradeCode;
-                const checked = gradeFilter === v;
+                const checked = gradeFilters.includes(v);
                 const n = countFor.grade(v);
                 return (
                   <li key={v}>
                     <button
                       type="button"
                       className={`lit-check-item ${checked ? 'lit-check-item--on' : ''}`}
-                      onClick={() => setGradeFilter(checked ? '' : v)}
+                      onClick={() => setGradeFilters((arr) => toggleInArray(arr, v))}
                       aria-pressed={checked}
                     >
                       <span className={`lit-check-box ${checked ? 'lit-check-box--on' : ''}`} aria-hidden>
@@ -399,14 +401,14 @@ export default function LiteraturePage() {
             <ul className="lit-check-list">
               {DESIGN_OPTIONS.filter((o) => o.value !== '').map((o) => {
                 const v = o.value as StudyDesignCode;
-                const checked = designFilter === v;
+                const checked = designFilters.includes(v);
                 const n = countFor.design(v);
                 return (
                   <li key={v}>
                     <button
                       type="button"
                       className={`lit-check-item ${checked ? 'lit-check-item--on' : ''}`}
-                      onClick={() => setDesignFilter(checked ? '' : v)}
+                      onClick={() => setDesignFilters((arr) => toggleInArray(arr, v))}
                       aria-pressed={checked}
                     >
                       <span className={`lit-check-box ${checked ? 'lit-check-box--on' : ''}`} aria-hidden>
@@ -430,24 +432,45 @@ export default function LiteraturePage() {
           <div className="lit-chips-row" role="status">
             <span className="lit-chips-label">已选筛选：</span>
             <span className="lit-chips-list">
-              {cat ? (
-                <span className="lit-chip">
-                  {CATEGORY_OPTIONS.find((o) => o.value === cat)?.label}
-                  <button type="button" aria-label="移除" className="lit-chip-close" onClick={() => setCat('')}>×</button>
+              {cats.map((v) => (
+                <span key={`cat-${v}`} className="lit-chip">
+                  {CATEGORY_OPTIONS.find((o) => o.value === v)?.label}
+                  <button
+                    type="button"
+                    aria-label="移除"
+                    className="lit-chip-close"
+                    onClick={() => setCats((arr) => arr.filter((x) => x !== v))}
+                  >
+                    ×
+                  </button>
                 </span>
-              ) : null}
-              {gradeFilter ? (
-                <span className="lit-chip">
-                  {GRADE_OPTIONS.find((o) => o.value === gradeFilter)?.label}
-                  <button type="button" aria-label="移除" className="lit-chip-close" onClick={() => setGradeFilter('')}>×</button>
+              ))}
+              {gradeFilters.map((v) => (
+                <span key={`grade-${v}`} className="lit-chip">
+                  {GRADE_OPTIONS.find((o) => o.value === v)?.label}
+                  <button
+                    type="button"
+                    aria-label="移除"
+                    className="lit-chip-close"
+                    onClick={() => setGradeFilters((arr) => arr.filter((x) => x !== v))}
+                  >
+                    ×
+                  </button>
                 </span>
-              ) : null}
-              {designFilter ? (
-                <span className="lit-chip">
-                  {DESIGN_OPTIONS.find((o) => o.value === designFilter)?.label}
-                  <button type="button" aria-label="移除" className="lit-chip-close" onClick={() => setDesignFilter('')}>×</button>
+              ))}
+              {designFilters.map((v) => (
+                <span key={`design-${v}`} className="lit-chip">
+                  {DESIGN_OPTIONS.find((o) => o.value === v)?.label}
+                  <button
+                    type="button"
+                    aria-label="移除"
+                    className="lit-chip-close"
+                    onClick={() => setDesignFilters((arr) => arr.filter((x) => x !== v))}
+                  >
+                    ×
+                  </button>
                 </span>
-              ) : null}
+              ))}
             </span>
             <button
               type="button"
