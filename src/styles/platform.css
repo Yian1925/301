@@ -2693,9 +2693,9 @@
 
 .ans-step-node--running {
   background: #fff;
-  border: 2px solid #d99b2a;
-  color: #d99b2a;
-  box-shadow: 0 0 0 4px rgba(217, 155, 42, 0.14);
+  border: 1.5px solid #a7e7dc;
+  color: var(--palette-teal);
+  box-shadow: 0 0 0 3px rgba(0, 188, 160, 0.12);
 }
 
 .ans-step-node--done {
@@ -2705,16 +2705,35 @@
 }
 
 .ans-step-pulse {
-  width: 8px;
-  height: 8px;
+  position: relative;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  background: #d99b2a;
-  animation: ans-step-pulse 1.1s ease-in-out infinite;
+  background:
+    conic-gradient(
+      from 0deg,
+      var(--palette-teal) 0deg,
+      var(--palette-teal) 30deg,
+      transparent 30deg 60deg,
+      var(--palette-teal) 60deg 90deg,
+      transparent 90deg 120deg,
+      var(--palette-teal) 120deg 150deg,
+      transparent 150deg 180deg,
+      var(--palette-teal) 180deg 210deg,
+      transparent 210deg 240deg,
+      var(--palette-teal) 240deg 270deg,
+      transparent 270deg 300deg,
+      var(--palette-teal) 300deg 330deg,
+      transparent 330deg 360deg
+    );
+  -webkit-mask: radial-gradient(circle at center, transparent 3px, #000 3.5px, #000 6px, transparent 6.5px);
+          mask: radial-gradient(circle at center, transparent 3px, #000 3.5px, #000 6px, transparent 6.5px);
+  animation: ans-step-pulse 1s linear infinite;
 }
 
 @keyframes ans-step-pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.35); opacity: 0.55; }
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 .ans-step-num {
@@ -2738,8 +2757,8 @@
 .ans-step-conn--active {
   background: repeating-linear-gradient(
     to right,
-    #d99b2a 0,
-    #d99b2a 4px,
+    var(--palette-teal) 0,
+    var(--palette-teal) 4px,
     transparent 4px,
     transparent 8px
   );
@@ -2757,7 +2776,7 @@
 }
 
 .ans-step-label--running {
-  color: #d99b2a;
+  color: var(--palette-teal);
   font-weight: 500;
 }
 
@@ -2795,8 +2814,8 @@
 
 .ans-section--loading {
   background: #fff;
-  border-color: #f3d9a7;
-  box-shadow: 0 4px 16px rgba(217, 155, 42, 0.08);
+  border-color: #a7e7dc;
+  box-shadow: 0 4px 16px rgba(0, 188, 160, 0.08);
 }
 
 .ans-section-no--pending {
@@ -2805,7 +2824,7 @@
 }
 
 .ans-section-no--loading {
-  background: #d99b2a;
+  background: var(--palette-teal);
   color: #fff;
 }
 
@@ -2814,7 +2833,7 @@
   align-items: center;
   gap: 6px;
   margin-top: 6px;
-  color: #a87611;
+  color: var(--palette-teal);
   font-size: 12px;
 }
 

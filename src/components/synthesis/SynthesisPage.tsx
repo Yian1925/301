@@ -365,7 +365,6 @@ export default function SynthesisPage() {
 
           <section className="syn-bp-panel syn-bp-panel--overview" aria-labelledby="syn-sum-h">
             <div className="syn-bp-panel-head">
-              <span className="syn-bp-panel-label">概述</span>
               <h3 id="syn-sum-h" className="syn-bp-panel-h">
                 本阶段临床概述
               </h3>
@@ -375,7 +374,6 @@ export default function SynthesisPage() {
 
           <section className="syn-bp-panel syn-bp-panel--guide" aria-labelledby="syn-gl-h">
             <div className="syn-bp-panel-head">
-              <span className="syn-bp-panel-label">指南</span>
               <h3 id="syn-gl-h" className="syn-bp-panel-h">
                 指南推荐要点
               </h3>
@@ -395,7 +393,6 @@ export default function SynthesisPage() {
 
           <section className="syn-bp-panel syn-bp-panel--ev" aria-labelledby="syn-ev-h">
             <div className="syn-bp-panel-head">
-              <span className="syn-bp-panel-label">证据</span>
               <h3 id="syn-ev-h" className="syn-bp-panel-h">
                 本阶段文献证据
               </h3>
@@ -439,7 +436,6 @@ export default function SynthesisPage() {
 
           <section className="syn-bp-panel syn-bp-panel--rwd" aria-labelledby="syn-in-h">
             <div className="syn-bp-panel-head">
-              <span className="syn-bp-panel-label">院内</span>
               <h3 id="syn-in-h" className="syn-bp-panel-h">
                 本院路径归纳
               </h3>
@@ -451,7 +447,6 @@ export default function SynthesisPage() {
             {casePreviewRows.length > 0 ? (
               <>
                 <div className="syn-bp-panel-head syn-bp-panel-head--sub">
-                  <span className="syn-bp-panel-label">病例概览</span>
                   <h4 className="syn-bp-panel-h syn-bp-panel-h--sub">本病种相关病例（节选）</h4>
                 </div>
                 <ul className="syn-bp-case-list">
